@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050916">
+  <meta name="description" content="冲天火箭：16:9 中文太空飞行小游戏，收集补给、升级引擎并组装火箭。">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>冲天火箭 · 星核远征</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient-light ambient-light--cyan" aria-hidden="true"></div>
+  <div class="ambient-light ambient-light--amber" aria-hidden="true"></div>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <path d="M16 3.5c3.6 3.1 5.7 7.2 5.7 12.2v4.8l3.5 3.1-5.6 1.3L16 29l-3.6-4.1-5.6-1.3 3.5-3.1v-4.8C10.3 10.7 12.4 6.6 16 3.5Z" fill="url(#logoBody)" stroke="#D9FAFF" stroke-width="1.1"/>
+            <circle cx="16" cy="13.3" r="2.6" fill="#62EBFF" stroke="#071222" stroke-width="1"/>
+            <path d="M12.6 21.1 16 25l3.4-3.9-3.4 1.2-3.4-1.2Z" fill="#FFB34E"/>
+            <defs>
+              <linearGradient id="logoBody" x1="12" y1="5" x2="20" y2="26" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#F7FDFF"/>
+                <stop offset="1" stop-color="#95C8D9"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </span>
+        <div class="brand-copy">
+          <h1>冲天火箭</h1>
+          <p>星核远征计划</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <span class="status-chip" id="statusChip"><i></i><span id="statusText">待命</span></span>
+        <button class="icon-button" id="soundBtn" type="button" aria-label="关闭音效" title="关闭音效">
+          <svg class="sound-on" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 9.2v5.6h3.4l4.2 3.4V5.8L8.4 9.2H5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M15.3 8.4a5 5 0 0 1 0 7.2M17.8 6a8.4 8.4 0 0 1 0 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+          <svg class="sound-off" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 9.2v5.6h3.4l4.2 3.4V5.8L8.4 9.2H5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="m16 9 5 5m0-5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="game-wrap" aria-label="冲天火箭游戏区域">
+      <div class="game-stage" id="gameStage">
+        <canvas id="gameCanvas" aria-label="火箭躲避障碍并收集补给的游戏画面">
+          你的浏览器不支持 Canvas，请使用较新的浏览器打开。
+        </canvas>
+
+        <div class="hud" id="hud">
+          <div class="hud-left">
+            <div class="score-card hud-card">
+              <span>得分</span>
+              <strong id="scoreValue">0</strong>
+            </div>
+            <div class="altitude-card hud-card">
+              <span>飞行高度</span>
+              <div class="altitude-value">
+                <strong id="altitudeValue">0</strong>
+                <em>米</em>
+              </div>
+            </div>
+            <div class="core-card hud-card" id="coreCard">
+              <span class="core-star" aria-hidden="true">✦</span>
+              <div>
+                <small>星核</small>
+                <strong id="coreValue">0</strong>
+              </div>
+            </div>
+            <div class="engine-card hud-card">
+              <span>引擎</span>
+              <strong id="engineLevelValue">Lv.0</strong>
+            </div>
+          </div>
+
+          <div class="hud-right">
+            <div class="component-tracker" id="componentTracker" aria-label="火箭组件收集进度：0 / 3">
+              <span class="part-slot" data-part="fin"><i>翼</i><small>尾翼</small></span>
+              <span class="part-slot" data-part="fuel"><i>燃</i><small>燃料</small></span>
+              <span class="part-slot" data-part="nav"><i>导</i><small>导航</small></span>
+            </div>
+            <div class="shield-pill" id="shieldPill">
+              <span>护盾</span>
+              <strong id="shieldTime">0</strong>
+            </div>
+            <div class="hearts" id="hearts" aria-label="飞船耐久：3">
+              <span class="life" aria-hidden="true">
+                <svg viewBox="0 0 20 20"><path d="M10 17S3 12.7 3 7.6A3.8 3.8 0 0 1 10 5a3.8 3.8 0 0 1 7 2.6C17 12.7 10 17 10 17Z" fill="currentColor"/></svg>
+              </span>
+              <span class="life" aria-hidden="true">
+                <svg viewBox="0 0 20 20"><path d="M10 17S3 12.7 3 7.6A3.8 3.8 0 0 1 10 5a3.8 3.8 0 0 1 7 2.6C17 12.7 10 17 10 17Z" fill="currentColor"/></svg>
+              </span>
+              <span class="life" aria-hidden="true">
+                <svg viewBox="0 0 20 20"><path d="M10 17S3 12.7 3 7.6A3.8 3.8 0 0 1 10 5a3.8 3.8 0 0 1 7 2.6C17 12.7 10 17 10 17Z" fill="currentColor"/></svg>
+              </span>
+            </div>
+            <button class="pause-button" id="pauseBtn" type="button" aria-label="暂停游戏" title="暂停游戏" disabled>
+              <span></span><span></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="play-hint" id="playHint" aria-hidden="true">
+          <span class="hint-finger" aria-hidden="true">↔</span>
+          拖动火箭 · 收集补给 · 避开障碍
+        </div>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+        <div class="overlay start-overlay" id="startOverlay">
+          <div class="start-content start-content--wide">
+            <section class="launch-intro">
+              <p class="eyebrow"><span></span>深空航行日志 · 第 08 号任务</p>
+
+              <div class="intro-title-row">
+                <div class="hero-orbit hero-orbit--compact" aria-hidden="true">
+                  <span class="orbit orbit-one"></span>
+                  <span class="orbit orbit-two"></span>
+                  <span class="orbit-dot dot-one"></span>
+                  <span class="orbit-dot dot-two"></span>
+                  <div class="hero-rocket">
+                    <svg viewBox="0 0 100 140" fill="none">
+                      <path class="hero-flame" d="M38 94c0 13 6 23 12 32 6-9 12-19 12-32H38Z" fill="url(#heroFlame)"/>
+                      <path d="m34 86-13 19 16-3 7-18-10 2Zm32 0 13 19-16-3-7-18 10 2Z" fill="#FF7A59"/>
+                      <path d="M50 8c12 12 20 27 20 45v26c0 7-3 12-8 16l-12 9-12-9c-5-4-8-9-8-16V53C30 35 38 20 50 8Z" fill="url(#heroBody)" stroke="#E8FCFF" stroke-width="2"/>
+                      <path d="M50 17c6 7 10 15 12 24l-12-7-12 7c2-9 6-17 12-24Z" fill="#FFB44F"/>
+                      <ellipse cx="50" cy="52" rx="9" ry="12" fill="#071B2C" stroke="#86F4FF" stroke-width="2.5"/>
+                      <ellipse cx="46" cy="47" rx="3" ry="5" fill="#C8FBFF" opacity=".75"/>
+                      <path d="M38 74h24M35 83h30" stroke="#5BC8DC" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+                      <path d="M42 94h16v8H42z" fill="#253849"/>
+                      <defs>
+                        <linearGradient id="heroBody" x1="35" y1="24" x2="67" y2="101" gradientUnits="userSpaceOnUse">
+                          <stop stop-color="#FFFFFF"/><stop offset=".5" stop-color="#DDF8FF"/><stop offset="1" stop-color="#96CFE1"/>
+                        </linearGradient>
+                        <linearGradient id="heroFlame" x1="50" y1="95" x2="50" y2="126" gradientUnits="userSpaceOnUse">
+                          <stop stop-color="#FFE29B"/><stop offset=".45" stop-color="#FFB34E"/><stop offset="1" stop-color="#FF5A7A" stop-opacity="0"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="intro-title-copy">
+                  <p class="mission-label">点火，冲向星河</p>
+                  <h2>冲天火箭</h2>
+                </div>
+              </div>
+
+              <p class="lead">穿越三层障碍带，收集星核、维修包与升级模块。<br>找齐三类零部件，把冲天号组装成完全体。</p>
+
+              <div class="feature-chips" aria-label="游戏内容">
+                <span><i>✦</i>星核</span>
+                <span><i>＋</i>维修</span>
+                <span><i>↑</i>升级</span>
+                <span><i>◈</i>组装</span>
+              </div>
+
+              <p class="best-line">历史最佳 <strong id="bestScoreStart">0</strong> 分 · 最高 <strong id="bestAltitudeStart">0</strong> 米</p>
+            </section>
+
+            <section class="launch-console" id="launchConsole" aria-label="发射控制台">
+              <div class="console-header">
+                <div>
+                  <p class="console-kicker">发射控制台</p>
+                  <h3>起飞前检查</h3>
+                </div>
+                <span class="console-led" id="consoleLed" aria-hidden="true"></span>
+              </div>
+
+              <div class="launch-status">
+                <i aria-hidden="true"></i>
+                <span id="launchStatus">等待启动指令</span>
+              </div>
+
+              <div class="launch-actions">
+                <button class="launch-button" id="powerBtn" type="button">
+                  <span class="step-no">01</span>
+                  <span class="step-copy"><strong>启动</strong><small>系统通电 · 完成自检</small></span>
+                  <span class="step-state" id="powerState">待命</span>
+                </button>
+                <button class="launch-button" id="igniteBtn" type="button" disabled>
+                  <span class="step-no">02</span>
+                  <span class="step-copy"><strong>点火</strong><small>点燃主引擎 · 预热推力</small></span>
+                  <span class="step-state" id="igniteState">锁定</span>
+                </button>
+                <button class="launch-button launch-button--go" id="launchBtn" type="button" disabled>
+                  <span class="step-no">03</span>
+                  <span class="step-copy"><strong>发射</strong><small>脱离发射台 · 开始爬升</small></span>
+                  <span class="step-state" id="launchState">锁定</span>
+                </button>
+              </div>
+
+              <div class="console-footer">
+                <span>目标 · 低空轨道</span>
+                <span>补给 6 类</span>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="overlay result-overlay is-hidden" id="overOverlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle" aria-hidden="true">
+          <div class="result-panel">
+            <div class="result-emblem" aria-hidden="true">
+              <svg viewBox="0 0 48 48" fill="none">
+                <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="1.2" opacity=".28"/>
+                <circle cx="24" cy="24" r="14" stroke="currentColor" stroke-width="1.2" stroke-dasharray="3 4" opacity=".48"/>
+                <path d="M24 11c4 4 6 8.6 6 13.8V30l4 3.4-6 1.3-4 5.3-4-5.3-6-1.3 4-3.4v-5.2c0-5.2 2-9.8 6-13.8Z" fill="url(#resultRocket)" stroke="#DDFBFF" stroke-width="1.3"/>
+                <circle cx="24" cy="23" r="2.6" fill="#63EAFF"/>
+                <defs><linearGradient id="resultRocket" x1="20" y1="13" x2="29" y2="36"><stop stop-color="#F8FEFF"/><stop offset="1" stop-color="#84BDD0"/></linearGradient></defs>
+              </svg>
+            </div>
+            <p class="result-kicker">航行日志已封存</p>
+            <h2 id="resultTitle">航程中断</h2>
+            <p class="result-message" id="resultMessage">障碍太密集了，再试一次吧。</p>
+            <span class="new-record is-hidden" id="newRecordBadge">新纪录</span>
+
+            <div class="final-score">
+              <span>最终得分</span>
+              <strong id="finalScore">0</strong>
+            </div>
+
+            <div class="result-grid result-grid--four">
+              <div><span>飞行高度</span><strong id="finalAltitude">0 米</strong></div>
+              <div><span>收集星核</span><strong id="finalCores">0 枚</strong></div>
+              <div><span>组装零件</span><strong id="finalParts">0 / 3</strong></div>
+              <div><span>引擎等级</span><strong id="finalEngine">Lv.0</strong></div>
+            </div>
+
+            <button class="primary-button primary-button--compact" id="restartBtn" type="button">
+              <span>返回发射台</span>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <p class="result-tip">按 Enter 返回发射台</p>
+          </div>
+        </div>
+
+        <div class="overlay pause-overlay is-hidden" id="pauseOverlay" role="dialog" aria-modal="true" aria-labelledby="pauseTitle" aria-hidden="true">
+          <div class="pause-panel">
+            <p class="result-kicker">引擎待命</p>
+            <h2 id="pauseTitle">航行暂停</h2>
+            <p>星海会在这里等你。</p>
+            <button class="primary-button primary-button--compact" id="resumeBtn" type="button">继续航行</button>
+            <button class="text-button" id="quitBtn" type="button">结束本次航程</button>
+          </div>
+        </div>
+
+        <div class="stage-vignette" aria-hidden="true"></div>
+        <div class="stage-noise" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <span><i class="footer-dot"></i>收集补给 · 升级引擎 · 组装冲天号</span>
+      <span>最佳 <strong id="bestScoreFooter">0</strong> 分 · 高度 <strong id="bestAltitudeFooter">0</strong> 米</span>
+    </footer>
+
+    <p class="sr-only" id="liveStatus" aria-live="polite"></p>
+  </main>
+
+  <div class="rotate-notice" id="rotateNotice" role="dialog" aria-modal="true" aria-labelledby="rotateTitle">
+    <div class="rotate-card">
+      <div class="rotate-icon" aria-hidden="true"><span>▯</span></div>
+      <p class="result-kicker">16:9 横屏任务</p>
+      <h2 id="rotateTitle">请横置手机</h2>
+      <p>旋转设备后即可进入发射控制台，获得完整的 16:9 航行视野。</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
